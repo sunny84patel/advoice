@@ -131,9 +131,6 @@ def gen_response(question):
     if question=="hi" or question=="Hi" or question =="hi!" or question =="Hi!" or question =="Hello" or question =="hello" or question =="hey" or question =="Hey":
         return "Hello! How can I assist you today?"
     
-    # history = chat_engine.chat_history
-        
-    # chat_history = [ChatMessage(role="user",content=history)]  # Replace with your actual chat history
     response = chat_engine.chat(question)
    
     return str(response)
@@ -175,22 +172,11 @@ def consulting():
 def ask_question():
     if request.method == 'POST':
         input_text = request.form['question']
-        
-        # Assuming these functions are defined elsewhere in your code
-        # Modify as necessary to fit your implementation
         response1 = gen_response(input_text)
         cleaned_response = clean_response(response1)
         
         # Process response to HTML
         html_response = markdown.markdown(cleaned_response)
-        # soup = BeautifulSoup(html_response, "html.parser")
-        
-        # # Unwrap all tags to remove any surrounding <p> tags
-        # for tag in soup.find_all():
-        #     tag.unwrap()
-        
-        # # Clean HTML using bleach
-        # clean_html_response = bleach.clean(str(soup), tags=bleach.sanitizer.ALLOWED_TAGS, strip=True)
         
         return jsonify({'response': html_response})
     else:
@@ -240,7 +226,7 @@ def ask_pdf():
 
     
 if __name__ == '__main__':
-    app.run(debug=False,port=5001)
+    app.run(debug=True,port=5001)
 
 
 
