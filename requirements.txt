@@ -1,0 +1,17 @@
+Flask
+langchain-community
+googletrans
+langchain-core
+langchain-google-genai
+chromadb
+pypdf
+llama_index
+sentence_transformers
+llama-index-llms-huggingface
+llama-index-readers-file
+llama-index-embeddings-huggingface
+llama-index-embeddings-langchain
+llama-index-embeddings-huggingface
+llama-index-embeddings-langchain
+langchain
+
