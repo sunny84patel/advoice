@@ -43,23 +43,38 @@ def allowed_file(filename):
 
 
 # System prompt for LLMS
+# system_prompt = """
+#     Consider yourself as the representative of Advoice Law Consultance "your creator".Given a question input, your task is to identify relevant keywords,sentences,phrases in the question and retrieve corresponding answers from the context.
+#     The model should analyze the input question, extract key terms, and search for similar or related questions in the context.The output should provide the answers associated with the identified keywords or closely related topics.
+#     The model should understand the context of the question, identify relevant keywords,phrases and sentences, and retrieve information from the provided context based on these keywords.
+#     It should be able to handle variations in question phrasing and retrieve accurate answers accordingly with smart generative answers like a law consultance bot answers to users query.Do not show "relevant keyword fetched" or "from the context provided" or "In the context provided" in the answer simply answer the questions in an intelligent manner.If the passage is out of the context from the documents and also out of the law domain, do not answer and say the provided question is out of law context so i cannot answer that.
+#     Answer every questions that are asked in max 3 lines.If user greets you then greet them back and if they say goodbye then also say "goodbye".
+#     Try not to include phrases like "Based on the context provided" or "In the context provided" instead use "According to my knowledge" or "As per Advoice Consultancy " or "as far as I know" give answer in a more generative and smart manner like a law consultance AI bot agent does.
+#     If the passage is out of the context from the documents say that sorry but i am not allowed to answer outside law domain in a respectful manner.
+#     Must remember, during chat session if new context is identified which is different from previous context than answer the question only to given question context not previously asked question context.
+# Context:\n {context}?\n
+# Question: \n{question}\n
+# """
+
 system_prompt = """
-    Consider yourself as the representative of Advoice Law Consultance "your creator".Given a question input, your task is to identify relevant keywords,sentences,phrases in the question and retrieve corresponding answers from the context.
-    The model should analyze the input question, extract key terms, and search for similar or related questions in the context.The output should provide the answers associated with the identified keywords or closely related topics.
-    The model should understand the context of the question, identify relevant keywords,phrases and sentences, and retrieve information from the provided context based on these keywords.
-    It should be able to handle variations in question phrasing and retrieve accurate answers accordingly with smart generative answers like a law consultance bot answers to users query.Do not show "relevant keyword fetched" or "from the context provided" or "In the context provided" in the answer simply answer the questions in an intelligent manner.If the passage is out of the context from the documents and also out of the law domain, do not answer and say the provided question is out of law context so i cannot answer that.
-    Answer every questions that are asked in max 3 lines.If user greets you then greet them back and if they say goodbye then also say "goodbye".
-    Try not to include phrases like "Based on the context provided" or "In the context provided" instead use "According to my knowledge" or "As per Advoice Consultancy " or "as far as I know" give answer in a more generative and smart manner like a law consultance AI bot agent does.
-    If the passage is out of the context from the documents say that sorry but i am not allowed to answer outside law domain in a respectful manner.
+    As a representative of Advoice Law Consultancy, tasked with providing insights on legal matters, I'm equipped to analyze questions, identify key terms, and retrieve pertinent information from the law domain.
+    The model comprehends the question's context, extracts relevant keywords, phrases, and sentences, and retrieves answers based on this analysis.
+    It's capable of handling variations in question phrasing and generating intelligent responses akin to a legal consultancy bot.
+    If the question is within the legal domain, the model will provide answers. If not, it will respectfully state that it cannot answer outside the law domain.
+    When addressing legal matters, it's important to consult with a qualified legal professional for specific guidance and representation.
+    Answer every question succinctly in up to three lines.
+    Do not include that strictly "I cannot provide legal Advice" in any answer instead of this include "According to Legal Consultance".
+    If greeted, respond accordingly, and if bid farewell, respond with "goodbye".
 Context:\n {context}?\n
 Question: \n{question}\n
 """
+
 query_wrapper_prompt = PromptTemplate("<|USER|>{query_str}<|ASSISTANT|>")
 
 llm2 = HuggingFaceLLM(
     context_window=8192,
-    max_new_tokens=256,
-    generate_kwargs={"temperature": 0, "do_sample": False},
+    max_new_tokens=1000,
+    generate_kwargs={"temperature": 0.3, "do_sample": False},
     system_prompt=system_prompt,
     query_wrapper_prompt=SimpleInputPrompt("{query_str}"),
     tokenizer_name="meta-llama/Meta-Llama-3-8B-Instruct",
@@ -78,42 +93,42 @@ Settings.llm = llm2
 Settings.embed_model = embed_model
 
 
-def translate_hinglish_to_english(text):
-    translator = Translator()
-    detected_lang = translator.detect(text).lang
-    translated_text = translator.translate(text, src='hi', dest='en').text
-    return translated_text
+# def translate_hinglish_to_english(text):
+#     translator = Translator()
+#     detected_lang = translator.detect(text).lang
+#     translated_text = translator.translate(text, src='hi', dest='en').text
+#     return translated_text
 
 # Format document
 def format_docs(docs):
     return "\n".join(doc.page_content for doc in docs)
 
 
-# Detect language
-def detect_language(text):
-    if any(ord(char) > 127 for char in text):
-        return "hinglish"
-    else:
-        return "english"
+# # Detect language
+# def detect_language(text):
+#     if any(ord(char) > 127 for char in text):
+#         return "hinglish"
+#     else:
+#         return "english"
 
-# Process input
-def process_input(input_text):
-    lang = detect_language(input_text)
-    if lang == "english":
-        return "english", input_text
-    elif lang == "hinglish":
-        return "hinglish", translate_hinglish_to_english(input_text)
-    else:
-        print("Unsupported language detected.")
-        return None
+# # Process input
+# def process_input(input_text):
+#     lang = detect_language(input_text)
+#     if lang == "english":
+#         return "english", input_text
+#     elif lang == "hinglish":
+#         return "hinglish", translate_hinglish_to_english(input_text)
+#     else:
+#         print("Unsupported language detected.")
+#         return None
 
 
-def format_to_markdown(text):
-  lines = text.strip().split('\n')
-  formatted_text = ""
-  for line in lines:
-    formatted_text += f"- {line.replace('*', '')}\n"
-  return formatted_text
+# def format_to_markdown(text):
+#   lines = text.strip().split('\n')
+#   formatted_text = ""
+#   for line in lines:
+#     formatted_text += f"- {line.replace('*', '')}\n"
+#   return formatted_text
 
 documents1 = SimpleDirectoryReader('uploads').load_data()
 index = VectorStoreIndex.from_documents(documents1)
@@ -226,7 +241,7 @@ def ask_pdf():
 
     
 if __name__ == '__main__':
-    app.run(debug=True,port=5001)
+    app.run(debug=False,port=5000)
 
 
 
