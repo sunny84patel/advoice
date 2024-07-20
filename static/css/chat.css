@@ -266,3 +266,9 @@ input::placeholder {
 .test{
   text-align: end;
 }
+.new-chat-icon {
+  font-size: 24px;
+  margin-left: 10px;
+  cursor: pointer;
+  color: white;
+}

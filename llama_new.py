@@ -1,6 +1,6 @@
 from langchain.embeddings.huggingface import HuggingFaceEmbeddings
 from llama_index.core import ServiceContext
-from llama_index.embeddings.langchain import LangchainEmbedding
+# from llama_index.embeddings.langchain import LangchainEmbedding
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
 from llama_index.llms.huggingface import HuggingFaceLLM
 from llama_index.core.prompts.prompts import SimpleInputPrompt
@@ -24,6 +24,8 @@ import re
 import bleach
 from werkzeug.utils import secure_filename
 from bs4 import BeautifulSoup
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 # Log in using your access token
 huggingface_hub.login(token="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")
 
@@ -41,6 +43,25 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chatbot.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+
+# Define a model for storing questions and responses
+class ChatHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    question = db.Column(db.String(1000))
+    response = db.Column(db.String(1000))
+
+# Create the database and tables
+with app.app_context():
+    db.create_all()
+
+def store_in_database(question, response):
+    chat_entry = ChatHistory(question=question, response=response)
+    db.session.add(chat_entry)
+    db.session.commit()
 
 # System prompt for LLMS
 # system_prompt = """
@@ -93,42 +114,9 @@ Settings.llm = llm2
 Settings.embed_model = embed_model
 
 
-# def translate_hinglish_to_english(text):
-#     translator = Translator()
-#     detected_lang = translator.detect(text).lang
-#     translated_text = translator.translate(text, src='hi', dest='en').text
-#     return translated_text
-
 # Format document
 def format_docs(docs):
     return "\n".join(doc.page_content for doc in docs)
-
-
-# # Detect language
-# def detect_language(text):
-#     if any(ord(char) > 127 for char in text):
-#         return "hinglish"
-#     else:
-#         return "english"
-
-# # Process input
-# def process_input(input_text):
-#     lang = detect_language(input_text)
-#     if lang == "english":
-#         return "english", input_text
-#     elif lang == "hinglish":
-#         return "hinglish", translate_hinglish_to_english(input_text)
-#     else:
-#         print("Unsupported language detected.")
-#         return None
-
-
-# def format_to_markdown(text):
-#   lines = text.strip().split('\n')
-#   formatted_text = ""
-#   for line in lines:
-#     formatted_text += f"- {line.replace('*', '')}\n"
-#   return formatted_text
 
 documents1 = SimpleDirectoryReader('uploads').load_data()
 index = VectorStoreIndex.from_documents(documents1)
@@ -145,7 +133,7 @@ chat_engine = index.as_chat_engine(
 def gen_response(question):
     if question=="hi" or question=="Hi" or question =="hi!" or question =="Hi!" or question =="Hello" or question =="hello" or question =="hey" or question =="Hey":
         return "Hello! How can I assist you today?"
-    
+        
     response = chat_engine.chat(question)
    
     return str(response)
@@ -189,13 +177,29 @@ def ask_question():
         input_text = request.form['question']
         response1 = gen_response(input_text)
         cleaned_response = clean_response(response1)
-        
+        store_in_database(input_text, cleaned_response)
         # Process response to HTML
         html_response = markdown.markdown(cleaned_response)
         
         return jsonify({'response': html_response})
     else:
         return jsonify({'response': 'Unsupported language detected.'})
+
+@app.route('/fetch_conversations', methods=['GET'])
+def fetch_conversations():
+    conversations = Conversation.query.all()
+    data = [{'id': conv.id, 'question': conv.question, 'response': conv.response} for conv in conversations]
+    return jsonify(data)
+
+@app.route('/reset_chat_engine', methods=['POST'])
+def reset_chat_engine():
+    chat_engine_reset()
+    return jsonify({"reply": "History Dumped Successfully"})
+
+def chat_engine_reset():
+    chat_engine.reset()
+    return "History Dumped Successfully"
+
 
 @app.route('/convert', methods=['POST'])
 def convert_file():
@@ -241,7 +245,7 @@ def ask_pdf():
 
     
 if __name__ == '__main__':
-    app.run(debug=False,port=5000)
+    app.run(debug=False,port=5001)
 
 
 

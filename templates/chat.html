@@ -4,14 +4,11 @@
 <head>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://kit.fontawesome.com/80f00f156f.js" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="../static/css/chat.css">
-  <script
-  src="https://kit.fontawesome.com/80f00f156f.js"
-  crossorigin="anonymous"
-></script>
+  <script src="https://kit.fontawesome.com/80f00f156f.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -23,7 +20,6 @@
           <div class="company-logo">
             <a href="/"><img src="../static/img/logo4.png" height="40" alt="Company Logo"></a>
           </div>
-          <div class="chat-history"></div>
         </div>
       </div>
       <div class="column-right">
@@ -31,6 +27,8 @@
           <label for="menu-toggle" id="toggle-menu-btn">
             <i class="bi bi-list"></i>
           </label>
+          <!-- <i class="fas fa-comments new-chat-icon" onclick="clearChat()" title="New Chat"></i> -->
+          <i class="fa-solid fa-pen-to-square new-chat-icon" onclick="clearChat()" title="New Chat"></i>
         </div>
         <div class="container">
           <div class="answer-container" id="answerContainer"></div>
@@ -189,6 +187,25 @@
       alert(caseType + ' data has been loaded successfully.');
     }
     window.setCaseType = setCaseType;
+    function clearChat() {
+      document.getElementById('answerContainer').innerHTML = '';
+      document.getElementById('answerContainer').style.display = 'none';
+      // Display the suggested questions and main heading again
+      document.getElementById('suggested-heading').style.display = 'block';
+      document.getElementById('suggested-questions').style.display = 'flex';
+      fetch('/reset_chat_engine', {
+        method: 'POST',
+      })
+        .then(response => response.json())
+        .then(data => {
+          alert(data.reply);
+          // Clear the chat-box
+          $('.chatbox-message').empty();
+        })
+        .catch(error => {
+          console.error('Error resetting chat history:', error);
+        });
+    }
   </script>
 
 </body>
