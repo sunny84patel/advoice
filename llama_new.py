@@ -27,7 +27,7 @@ from bs4 import BeautifulSoup
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 # Log in using your access token
-huggingface_hub.login(token="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")
+huggingface_hub.login(token="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")
 
 
 app = Flask(__name__)
@@ -63,19 +63,6 @@ def store_in_database(question, response):
     db.session.add(chat_entry)
     db.session.commit()
 
-# System prompt for LLMS
-# system_prompt = """
-#     Consider yourself as the representative of Advoice Law Consultance "your creator".Given a question input, your task is to identify relevant keywords,sentences,phrases in the question and retrieve corresponding answers from the context.
-#     The model should analyze the input question, extract key terms, and search for similar or related questions in the context.The output should provide the answers associated with the identified keywords or closely related topics.
-#     The model should understand the context of the question, identify relevant keywords,phrases and sentences, and retrieve information from the provided context based on these keywords.
-#     It should be able to handle variations in question phrasing and retrieve accurate answers accordingly with smart generative answers like a law consultance bot answers to users query.Do not show "relevant keyword fetched" or "from the context provided" or "In the context provided" in the answer simply answer the questions in an intelligent manner.If the passage is out of the context from the documents and also out of the law domain, do not answer and say the provided question is out of law context so i cannot answer that.
-#     Answer every questions that are asked in max 3 lines.If user greets you then greet them back and if they say goodbye then also say "goodbye".
-#     Try not to include phrases like "Based on the context provided" or "In the context provided" instead use "According to my knowledge" or "As per Advoice Consultancy " or "as far as I know" give answer in a more generative and smart manner like a law consultance AI bot agent does.
-#     If the passage is out of the context from the documents say that sorry but i am not allowed to answer outside law domain in a respectful manner.
-#     Must remember, during chat session if new context is identified which is different from previous context than answer the question only to given question context not previously asked question context.
-# Context:\n {context}?\n
-# Question: \n{question}\n
-# """
 
 system_prompt = """
     As a representative of Advoice Law Consultancy, tasked with providing insights on legal matters, I'm equipped to analyze questions, identify key terms, and retrieve pertinent information from the law domain.
@@ -84,12 +71,11 @@ system_prompt = """
     If the question is within the legal domain, the model will provide answers. If not, it will respectfully state that it cannot answer outside the law domain.
     When addressing legal matters, it's important to consult with a qualified legal professional for specific guidance and representation.
     Answer every question succinctly in up to three lines.
-    Do not include that strictly "I cannot provide legal Advice" in any answer instead of this include "According to Legal Consultance".
+    Do not include that strictly that "I cannot provide legal Advice" in any answer instead of this include "According to Legal Consultancy".
     If greeted, respond accordingly, and if bid farewell, respond with "goodbye".
 Context:\n {context}?\n
 Question: \n{question}\n
 """
-
 query_wrapper_prompt = PromptTemplate("<|USER|>{query_str}<|ASSISTANT|>")
 
 llm2 = HuggingFaceLLM(
@@ -180,7 +166,7 @@ def ask_question():
         store_in_database(input_text, cleaned_response)
         # Process response to HTML
         html_response = markdown.markdown(cleaned_response)
-        
+        print(html_response)
         return jsonify({'response': html_response})
     else:
         return jsonify({'response': 'Unsupported language detected.'})
