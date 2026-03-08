@@ -18,7 +18,7 @@
 
 # docs_new = split_docs(data)
 
-# os.environ['GOOGLE_API_KEY'] = "AIzaSyCB0FsriiPfyTLwZGM9z_cDLdl03MFjeFQ"
+# os.environ['GOOGLE_API_KEY'] = ""
 
 # model = ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.7, top_p=0.9, top_k=50)
 
@@ -32,7 +32,7 @@
 
 # local_model = "mistral"
 # llm = ChatOllama(model=local_model)
-#llm = Gemini(api_key="AIzaSyCB0FsriiPfyTLwZGM9z_cDLdl03MFjeFQ", model_name="models/gemini-pro",temperature=0.7, top_p=0.9, top_k=50)
+#llm = Gemini(api_key="", model_name="models/gemini-pro",temperature=0.7, top_p=0.9, top_k=50)
 
 # Create vector store
 # vectorstore = Chroma.from_documents(
